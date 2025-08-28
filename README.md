@@ -4,14 +4,21 @@ Un calculador de puntuación de legibilidad implementado en Java como parte del 
 
 ## 📖 Descripción
 
-Este proyecto implementa un analizador de texto que calcula la puntuación de legibilidad utilizando la **fórmula de Flesch-Kincaid**. El programa analiza un archivo de texto y determina qué tan fácil es de leer, proporcionando también el rango de edad recomendado para comprenderlo.
+Este proyecto implementa un analizador de texto que calcula la puntuación de legibilidad utilizando **cuatro métodos diferentes**:
+- **ARI (Automated Readability Index)**
+- **FK (Flesch-Kincaid Grade Level)**
+- **SMOG (Simple Measure of Gobbledygook)**
+- **CL (Coleman-Liau Index)**
+
+El programa analiza un archivo de texto y determina qué tan fácil es de leer, proporcionando también el rango de edad recomendado para comprenderlo.
 
 ### ¿Qué es la legibilidad?
 
-La legibilidad es la facilidad con la que un lector puede entender un texto escrito. Este proyecto utiliza la fórmula de Flesch-Kincaid que considera:
+La legibilidad es la facilidad con la que un lector puede entender un texto escrito. Este proyecto utiliza múltiples fórmulas que consideran:
 - Número de caracteres por palabra
 - Número de palabras por oración
-- Complejidad general del texto
+- Número de sílabas por palabra
+- Número de palabras polisilábicas (más de 2 sílabas)
 
 ## 🔧 Características
 
@@ -20,13 +27,20 @@ La legibilidad es la facilidad con la que un lector puede entender un texto escr
   - Número de palabras
   - Número de oraciones
   - Número de caracteres (sin espacios)
-- ✅ Puntuación de legibilidad usando Flesch-Kincaid
-- ✅ Rango de edad recomendado para la comprensión del texto
+  - Número de sílabas
+  - Número de palabras polisilábicas
+- ✅ **Cuatro métodos de puntuación de legibilidad:**
+  - **ARI**: Basado en caracteres y palabras
+  - **FK**: Basado en sílabas y longitud de oraciones
+  - **SMOG**: Enfocado en palabras polisilábicas
+  - **CL**: Combinación de caracteres y oraciones
+- ✅ Cálculo del promedio de edad cuando se usan todos los métodos
+- ✅ Rango de edad recomendado para cada método
 - ✅ Uso de expresiones regulares (regex) para el análisis
 
 ## 📋 Requisitos
 
-- Java 8 o superior
+- Java 11 o superior (usa `switch` expressions)
 - Sistema operativo: Windows, macOS o Linux
 
 ## 🚀 Instalación y Uso
@@ -53,30 +67,54 @@ java -cp out shoangenes.dev.ReadabilityScore src/shoangenes/dev/in.txt
 
 ```
 The text is:
-Readability is the ease with which a reader can understand a written text...
+This is the front page of the Simple English Wikipedia. Wikipedias are places where people work together to write encyclopedias in different languages...
 
-Words: 108
-Sentences: 6
-Characters: 580
-The score is: 12.86
-This text should be understood by 16-17 year-olds.
+Words: 137
+Sentences: 14
+Characters: 687
+Syllables: 210
+Polysyllables: 17
+Enter the score you want to calculate (ARI, FK, SMOG, CL, all): all
+Automated Readability Index: 7.08 (about 13-year-olds).
+Flesch–Kincaid readability tests: 6.31 (about 12-year-olds).
+Simple Measure of Gobbledygook: 9.42 (about 15-year-olds).
+Coleman–Liau index: 10.66 (about 17-year-olds).
+
+This text should be understood in average by 14.25-year-olds.
 ```
 
-## 🧮 Fórmula Utilizada
+## 🧮 Fórmulas Utilizadas
 
-**Flesch-Kincaid Grade Level:**
+### 1. ARI (Automated Readability Index)
 ```
 Score = 4.71 × (caracteres/palabras) + 0.5 × (palabras/oraciones) - 21.43
+```
+
+### 2. Flesch-Kincaid Grade Level
+```
+Score = 0.39 × (palabras/oraciones) + 11.8 × (sílabas/palabras) - 15.59
+```
+
+### 3. SMOG (Simple Measure of Gobbledygook)
+```
+Score = 1.043 × √(polisilábicas × (30/oraciones)) + 3.1291
+```
+
+### 4. Coleman-Liau Index
+```
+Score = 0.0588 × L - 0.296 × S - 15.8
+Donde: L = caracteres por 100 palabras, S = oraciones por 100 palabras
 ```
 
 ### Interpretación del Score
 
 | Score | Edad Recomendada | Nivel de Lectura |
 |-------|------------------|------------------|
-| 0-4   | 4-9 años        | Muy fácil        |
-| 5-9   | 9-14 años       | Fácil            |
-| 10-13 | 14-18 años      | Moderado         |
-| 14+   | 18+ años        | Difícil          |
+| 1-6   | 6-11 años       | Muy fácil        |
+| 7-9   | 12-14 años      | Fácil            |
+| 10-12 | 15-17 años      | Moderado         |
+| 13-14 | 18-22 años      | Difícil          |
+| 15+   | 24+ años        | Muy difícil      |
 
 ## 🔍 Estructura del Código
 
@@ -93,33 +131,51 @@ src/
 - `howManyCharacters()` - Cuenta caracteres sin espacios
 - `howManyWords()` - Cuenta palabras usando regex
 - `howManySentences()` - Cuenta oraciones por puntos, exclamaciones y interrogaciones
-- `calculateScore()` - Aplica la fórmula Flesch-Kincaid
+- `countSyllables()` - Cuenta sílabas en una palabra
+- `howManySyllables()` - Cuenta sílabas totales del texto
+- `howManyPolysyllables()` - Cuenta palabras con más de 2 sílabas
+- `calculateScoreByARI()` - Calcula ARI
+- `calculateScoreByFK()` - Calcula Flesch-Kincaid
+- `calculateScoreBySMOG()` - Calcula SMOG
+- `calculateScoreByCL()` - Calcula Coleman-Liau
 - `getAge()` - Convierte score a rango de edad
+
+## 💻 Opciones de Cálculo
+
+El programa permite elegir qué método usar:
+- `ari` - Solo Automated Readability Index
+- `fk` - Solo Flesch-Kincaid
+- `smog` - Solo SMOG
+- `cl` - Solo Coleman-Liau
+- `all` - Todos los métodos + promedio de edad
 
 ## 🛠️ Tecnologías Utilizadas
 
-- **Java**: Lenguaje de programación principal
+- **Java 11+**: Lenguaje de programación principal (switch expressions)
 - **Regex**: Para análisis y parsing del texto
 - **Java NIO**: Para lectura de archivos
 - **Streams API**: Para procesamiento funcional
+- **Algoritmos de conteo de sílabas**: Para análisis lingüístico
 
 ## 📝 Ejemplo de Archivo de Entrada
 
 Crea un archivo `.txt` con cualquier texto en inglés:
 
 ```txt
-Readability is the ease with which a reader can understand a written text. 
-In natural language, the readability of text depends on its content and its presentation.
+This is the front page of the Simple English Wikipedia. Wikipedias are places where people work together to write encyclopedias in different languages. We use Simple English words and grammar here. The Simple English Wikipedia is for everyone!
 ```
 
 ## 🎯 Objetivos de Aprendizaje (Hyperskill)
 
 Este proyecto ayuda a practicar:
 - Manipulación de strings en Java
-- Expresiones regulares (regex)
-- Lectura de archivos
-- Operaciones matemáticas
+- Expresiones regulares (regex) avanzadas
+- Lectura de archivos con NIO
+- Operaciones matemáticas complejas
 - Estructuración de código en métodos
+- Switch expressions (Java 11+)
+- Algoritmos de análisis de texto
+- Conteo de sílabas y análisis lingüístico
 
 ## 🤝 Contribuciones
 
